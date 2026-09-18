@@ -1,0 +1,24 @@
+.DS_Store
+Thumbs.db
+*.log
+
+# Gradle & Build Artifacts
+.gradle/
+build/
+backend/.gradle/
+backend/build/
+backend/out/
+
+# Uploaded evidence files (development)
+backend/uploads/
+uploads/
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
