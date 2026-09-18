@@ -1,53 +1,35 @@
-## Micronaut 5.1.5 Documentation
+# Backend — Sistema Móvil de Detección de Insectos Descortezadores (TT 2026-B161)
 
-- [User Guide](https://docs.micronaut.io/5.1.5/guide/index.html)
-- [API Reference](https://docs.micronaut.io/5.1.5/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/5.1.5/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
+API REST centralizada desarrollada en **Java 21** y **Micronaut 4.7.4** con **Clean Architecture**, persistencia en **PostgreSQL 16** y autenticación **JWT con BCrypt**. Diseñada bajo el enfoque *Offline-First* para sincronización con aplicación móvil Android y plataforma web.
+
 ---
 
-- [Micronaut Gradle Plugin documentation](https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/)
-- [GraalVM Gradle Plugin documentation](https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html)
-- [Shadow Gradle Plugin](https://gradleup.com/shadow/)
-## Feature test-resources documentation
+## Requisitos y Ejecución Rápida
 
+### 1. Base de Datos (PostgreSQL en Docker)
+Desde la raíz del proyecto:
+```bash
+docker compose up -d
+```
+* **Host:** `localhost:5432` | **BD:** `descortezadores_db` | **Usuario:** `postgres` | **Password:** `postgres`
+* Esquema relacional de 7 tablas inicializado automáticamente vía `docker/postgres/init-schema.sql`.
 
-- [Micronaut Test Resources documentation](https://micronaut-projects.github.io/micronaut-test-resources/latest/guide/)
+### 2. Ejecutar Servidor Backend
+```bash
+cd backend
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+./gradlew run
+```
+Servidor disponible en `http://localhost:8080`.
 
+---
 
-## Feature security-jwt documentation
+## Resumen de Endpoints Principales
 
-
-- [Micronaut Security JWT documentation](https://micronaut-projects.github.io/micronaut-security/latest/guide/index.html)
-
-
-## Feature serialization-jackson documentation
-
-
-- [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
-
-
-## Feature validation documentation
-
-
-- [Micronaut Validation documentation](https://micronaut-projects.github.io/micronaut-validation/latest/guide/)
-
-
-## Feature jdbc-hikari documentation
-
-
-- [Micronaut Hikari JDBC Connection Pool documentation](https://micronaut-projects.github.io/micronaut-sql/latest/guide/index.html#jdbc)
-
-
-## Feature micronaut-aot documentation
-
-
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
-
-
-## Feature data-jdbc documentation
-
-
-- [Micronaut Data JDBC documentation](https://micronaut-projects.github.io/micronaut-data/latest/guide/index.html#jdbc)
-
-
+* `GET /api/v1/health`: Estado del servicio (`UP`).
+* `POST /login`: Autenticación y emisión de JWT (`experto@chapultepec.gob.mx` o `admin@chapultepec.gob.mx` / `Password123!`).
+* `POST /sync`: Sincronización masiva de capturas offline (Base64 + metadatos + análisis cromático).
+* `GET /api/v1/arboles`: Consulta del catálogo de árboles.
+* `POST /api/v1/arboles`: Registro individual de árboles.
+* `GET /api/v1/evidencias/{archivo}`: Visualización de fotografías de evidencia.
+* `/api/v1/admin/*`: Módulo administrativo de gestión de cuentas y dispositivos (CU-A00).
