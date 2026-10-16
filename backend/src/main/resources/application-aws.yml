@@ -1,0 +1,17 @@
+# Configuración para el perfil de despliegue en AWS Serverless (Lambda / ECS)
+# Activación: MICRONAUT_ENVIRONMENTS=aws o -Dmicronaut.environments=aws
+
+aws:
+  s3:
+    enabled: true
+    region: ${AWS_REGION:us-east-1}
+    bucket-name: ${AWS_S3_BUCKET:descortezadores-evidencias-2026}
+    evidencias-prefix: ${AWS_S3_EVIDENCIAS_PREFIX:evidencias/}
+    modelos-prefix: ${AWS_S3_MODELOS_PREFIX:modelos/}
+    cdn-url: ${AWS_S3_CDN_URL:}
+
+datasources:
+  default:
+    url: ${JDBC_URL:`jdbc:postgresql://${RDS_ENDPOINT:localhost}:5432/${RDS_DB_NAME:descortezadores_db}`}
+    username: ${RDS_USERNAME:postgres}
+    password: ${RDS_PASSWORD:postgres}

@@ -28,8 +28,16 @@ Servidor disponible en `http://localhost:8080`.
 
 * `GET /api/v1/health`: Estado del servicio (`UP`).
 * `POST /login`: Autenticación y emisión de JWT (`experto@chapultepec.gob.mx` o `admin@chapultepec.gob.mx` / `Password123!`).
-* `POST /sync`: Sincronización masiva de capturas offline (Base64 + metadatos + análisis cromático).
+* `POST /sync` / `POST /api/v1/sync/detecciones`: Sincronización masiva offline (corteza + follaje, Base64 + metadatos + análisis cromático).
 * `GET /api/v1/arboles`: Consulta del catálogo de árboles.
 * `POST /api/v1/arboles`: Registro individual de árboles.
+* `PUT /api/v1/arboles/{id}`: Actualización de datos y observaciones de un árbol.
+* `GET /api/v1/arboles/{id}/analisis`: Historial de diagnósticos y capturas de un árbol.
+* `GET /api/v1/analisis`: Historial general de capturas y análisis con datos cromáticos.
+* `GET /api/v1/analisis/{id}`: Detalle específico de un análisis.
+* `GET /api/v1/analisis/jornada`: Capturas realizadas durante la jornada en curso.
+* `GET /api/v1/zonas-follaje`: Zonas de monitoreo aéreo (follaje/dron).
+* `GET /api/v1/estadisticas/dashboard`: Métricas agregadas para panel web (D3.js).
+* `GET /api/v1/estadisticas/focos`: Detección automática de focos de infestación activos (NOM-019-SEMARNAT-2017).
 * `GET /api/v1/evidencias/{archivo}`: Visualización de fotografías de evidencia.
 * `/api/v1/admin/*`: Módulo administrativo de gestión de cuentas y dispositivos (CU-A00).

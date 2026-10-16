@@ -1,7 +1,10 @@
 package com.descortezadores.adapters.controllers;
 
+import com.descortezadores.adapters.dto.AnalisisDetalleDTO;
 import com.descortezadores.adapters.dto.ArbolDTO;
+import com.descortezadores.adapters.dto.ErrorResponseDTO;
 import com.descortezadores.domain.entities.Arbol;
+import com.descortezadores.domain.rules.MensajesSistema;
 import com.descortezadores.usecases.detection.RegistrarDeteccionUseCase;
 import com.descortezadores.usecases.history.ConsultarHistorialUseCase;
 import io.micronaut.http.HttpResponse;
@@ -43,6 +46,14 @@ public class ArbolController {
             .orElseGet(HttpResponse::notFound);
     }
 
+    /**
+     * RF-10, RF-20, CU-W06, CU-W11: Historial de capturas y análisis sanitarios de un árbol
+     */
+    @Get("/{id}/analisis")
+    public List<AnalisisDetalleDTO> obtenerAnalisisDeArbol(@PathVariable UUID id) {
+        return consultarHistorialUseCase.obtenerHistorialPorArbol(id);
+    }
+
     @Post
     public HttpResponse<ArbolDTO> registrar(@Body ArbolDTO dto, Authentication authentication) {
         UUID idCuenta = UUID.fromString("a0000000-0000-0000-0000-000000000002");
@@ -54,6 +65,19 @@ public class ArbolController {
 
         Arbol guardado = registrarDeteccionUseCase.registrarArbol(dto, idCuenta);
         return HttpResponse.created(toDTO(guardado));
+    }
+
+    /**
+     * RF-23, RN-41: Edición de datos de un árbol y actualización de observaciones
+     */
+    @Put("/{id}")
+    public HttpResponse<?> actualizar(@PathVariable UUID id, @Body ArbolDTO dto) {
+        try {
+            Arbol actualizado = consultarHistorialUseCase.actualizarArbol(id, dto);
+            return HttpResponse.ok(toDTO(actualizado));
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.notFound(new ErrorResponseDTO(MensajesSistema.MSG14.getCodigo(), e.getMessage()));
+        }
     }
 
     private ArbolDTO toDTO(Arbol entity) {

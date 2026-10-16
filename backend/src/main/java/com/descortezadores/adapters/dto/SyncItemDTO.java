@@ -34,5 +34,11 @@ public record SyncItemDTO(
     @Nullable
     String imagenBase64, // imagen codificada en base64 para sincronización directa
     @Nullable
-    UUID idDispositivo
+    UUID idDispositivo,
+    @Nullable
+    UUID idZona,
+    @Nullable
+    String nombreZonaNuevo,
+    @Nullable
+    Double radioMetrosZona
 ) {}

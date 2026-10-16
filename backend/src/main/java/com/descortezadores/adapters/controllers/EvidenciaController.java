@@ -1,5 +1,6 @@
 package com.descortezadores.adapters.controllers;
 
+import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
@@ -21,14 +22,10 @@ import java.util.UUID;
 public class EvidenciaController {
 
     private static final Logger LOG = LoggerFactory.getLogger(EvidenciaController.class);
-    private static final String UPLOAD_DIR = "uploads/evidencias/";
+    private final com.descortezadores.infrastructure.storage.AlmacenamientoService almacenamientoService;
 
-    public EvidenciaController() {
-        try {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
-        } catch (Exception e) {
-            LOG.warn("No se pudo crear el directorio de evidencias: {}", e.getMessage());
-        }
+    public EvidenciaController(com.descortezadores.infrastructure.storage.AlmacenamientoService almacenamientoService) {
+        this.almacenamientoService = almacenamientoService;
     }
 
     /**
@@ -39,11 +36,11 @@ public class EvidenciaController {
     @Produces({MediaType.IMAGE_JPEG, MediaType.IMAGE_PNG, MediaType.ALL})
     public HttpResponse<byte[]> obtenerEvidencia(@PathVariable String filename) {
         try {
-            Path filePath = Paths.get(UPLOAD_DIR, filename).normalize();
-            if (!Files.exists(filePath)) {
+            byte[] bytes = almacenamientoService.obtenerEvidencia(filename);
+            if (bytes == null) {
                 return HttpResponse.notFound();
             }
-            byte[] bytes = Files.readAllBytes(filePath);
+
             String contentType = filename.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
             return HttpResponse.ok(bytes).header("Content-Type", contentType);
         } catch (Exception e) {
@@ -60,21 +57,19 @@ public class EvidenciaController {
     public HttpResponse<Map<String, String>> subirImagen(@Part("file") CompletedFileUpload file) {
         try {
             String extension = ".jpg";
-            if (file.getFilename().toLowerCase().endsWith(".png")) {
+            String contentType = "image/jpeg";
+            if (file.getFilename() != null && file.getFilename().toLowerCase().endsWith(".png")) {
                 extension = ".png";
+                contentType = "image/png";
             }
             String filename = UUID.randomUUID() + extension;
-            Path targetPath = Paths.get(UPLOAD_DIR, filename);
+            byte[] bytes = file.getBytes();
 
-            try (InputStream in = file.getInputStream()) {
-                Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            String url = "/api/v1/evidencias/" + filename;
+            String url = almacenamientoService.guardarEvidencia(bytes, filename, contentType);
             return HttpResponse.ok(Map.of(
                 "filename", filename,
                 "url", url,
-                "sizeBytes", String.valueOf(file.getSize())
+                "sizeBytes", String.valueOf(bytes.length)
             ));
         } catch (Exception e) {
             LOG.error("Error al subir archivo: {}", e.getMessage());

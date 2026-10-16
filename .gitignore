@@ -22,3 +22,8 @@ uploads/
 .settings/
 .classpath
 .project
+
+# Local runtime directories & test outputs
+backend/models/
+*.pdf
+
