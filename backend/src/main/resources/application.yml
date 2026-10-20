@@ -28,6 +28,9 @@ micronaut:
       max-file-size: 10MB
   security:
     authentication: bearer
+    endpoints:
+      login:
+        enabled: false
     token:
       jwt:
         signatures:
@@ -54,7 +57,7 @@ aws:
 
 datasources:
   default:
-    url: ${JDBC_URL:`jdbc:postgresql://localhost:5432/descortezadores_db`}
+    url: ${DATASOURCES_DEFAULT_URL:${JDBC_URL:jdbc:postgresql://localhost:5432/descortezadores_db}}
     username: ${JDBC_USER:`postgres`}
     password: ${JDBC_PASSWORD:`postgres`}
     driver-class-name: org.postgresql.Driver

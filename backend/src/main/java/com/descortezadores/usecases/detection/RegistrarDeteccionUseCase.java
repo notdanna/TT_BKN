@@ -21,13 +21,18 @@ public class RegistrarDeteccionUseCase {
     }
 
     public Arbol registrarArbol(ArbolDTO dto, UUID idCuenta) {
+        UUID id = dto.idArbol() != null ? dto.idArbol() : UUID.randomUUID();
+        var existente = arbolRepository.findById(id);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
         Arbol nuevo = new Arbol(
-            UUID.randomUUID(),
+            id,
             dto.nombreEspecifico(),
             dto.especie(),
             dto.longitud(),
             dto.latitud(),
-            Instant.now(),
+            dto.fechaRegistro() != null ? dto.fechaRegistro() : Instant.now(),
             dto.descripcion(),
             idCuenta,
             dto.idDispositivo()

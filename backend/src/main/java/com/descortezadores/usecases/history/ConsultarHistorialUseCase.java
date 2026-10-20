@@ -3,6 +3,7 @@ package com.descortezadores.usecases.history;
 import com.descortezadores.adapters.dto.AnalisisCromaticoDTO;
 import com.descortezadores.adapters.dto.AnalisisDetalleDTO;
 import com.descortezadores.adapters.dto.ArbolDTO;
+import com.descortezadores.adapters.dto.ZonaFollajeDTO;
 import com.descortezadores.domain.entities.Analisis;
 import com.descortezadores.domain.entities.AnalisisCromatico;
 import com.descortezadores.domain.entities.Arbol;
@@ -69,6 +70,21 @@ public class ConsultarHistorialUseCase {
         return arbolRepository.update(actualizado);
     }
 
+    public void eliminarArbol(UUID idArbol) {
+        analisisRepository.findByIdArbol(idArbol).forEach(a -> {
+            analisisCromaticoRepository.findByIdAnalisis(a.idAnalisis())
+                .ifPresent(c -> analisisCromaticoRepository.deleteById(c.idAnalisisCromatico()));
+            analisisRepository.delete(a);
+        });
+        arbolRepository.deleteById(idArbol);
+    }
+
+    public void eliminarTodosArboles() {
+        analisisCromaticoRepository.deleteAll();
+        analisisRepository.deleteAll();
+        arbolRepository.deleteAll();
+    }
+
     public List<AnalisisDetalleDTO> obtenerHistorialPorArbol(UUID idArbol) {
         return analisisRepository.findByIdArbol(idArbol).stream()
             .map(this::toDetalleDTO)
@@ -104,6 +120,64 @@ public class ConsultarHistorialUseCase {
 
     public Optional<ZonaFollaje> obtenerZonaFollajePorId(UUID idZona) {
         return zonaFollajeRepository.findById(idZona);
+    }
+
+    public ZonaFollaje registrarZonaFollaje(ZonaFollajeDTO dto, UUID idCuenta) {
+        UUID id = dto.idZona() != null ? dto.idZona() : UUID.randomUUID();
+        var existente = zonaFollajeRepository.findById(id);
+        if (existente.isPresent()) {
+            return existente.get();
+        }
+        ZonaFollaje nueva = new ZonaFollaje(
+            id,
+            dto.latitudCentro() != null ? dto.latitudCentro() : 19.4200,
+            dto.longitudCentro() != null ? dto.longitudCentro() : -99.1800,
+            dto.fechaRegistro() != null ? dto.fechaRegistro() : Instant.now(),
+            dto.descripcion(),
+            dto.nombreZona() != null ? dto.nombreZona() : "Zona-" + id.toString().substring(0, 5),
+            dto.radioMetros() != null ? dto.radioMetros() : 50.0,
+            dto.idDispositivo(),
+            idCuenta
+        );
+        return zonaFollajeRepository.save(nueva);
+    }
+
+    public ZonaFollaje actualizarZonaFollaje(UUID idZona, ZonaFollajeDTO dto) {
+        ZonaFollaje existente = zonaFollajeRepository.findById(idZona)
+            .orElseThrow(() -> new IllegalArgumentException("Zona de follaje no encontrada con ID: " + idZona));
+
+        ZonaFollaje actualizada = new ZonaFollaje(
+            existente.idZona(),
+            dto.latitudCentro() != null ? dto.latitudCentro() : existente.latitudCentro(),
+            dto.longitudCentro() != null ? dto.longitudCentro() : existente.longitudCentro(),
+            existente.fechaRegistro(),
+            dto.descripcion() != null ? dto.descripcion() : existente.descripcion(),
+            dto.nombreZona() != null ? dto.nombreZona() : existente.nombreZona(),
+            dto.radioMetros() != null ? dto.radioMetros() : existente.radioMetros(),
+            existente.idDispositivo(),
+            existente.idCuenta()
+        );
+        return zonaFollajeRepository.update(actualizada);
+    }
+
+    public void eliminarZonaFollaje(UUID idZona) {
+        analisisRepository.findByIdZona(idZona).forEach(a -> {
+            analisisCromaticoRepository.findByIdAnalisis(a.idAnalisis())
+                .ifPresent(c -> analisisCromaticoRepository.deleteById(c.idAnalisisCromatico()));
+            analisisRepository.delete(a);
+        });
+        zonaFollajeRepository.deleteById(idZona);
+    }
+
+    public void eliminarTodasZonasFollaje() {
+        analisisRepository.findAll().stream()
+            .filter(a -> a.idZona() != null)
+            .forEach(a -> {
+                analisisCromaticoRepository.findByIdAnalisis(a.idAnalisis())
+                    .ifPresent(c -> analisisCromaticoRepository.deleteById(c.idAnalisisCromatico()));
+                analisisRepository.delete(a);
+            });
+        zonaFollajeRepository.deleteAll();
     }
 
     private AnalisisDetalleDTO toDetalleDTO(Analisis a) {

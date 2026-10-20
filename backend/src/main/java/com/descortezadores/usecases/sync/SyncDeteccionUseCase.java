@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -106,7 +107,26 @@ public class SyncDeteccionUseCase {
                 if ("follaje".equals(tipoImagen)) {
                     // Flujo para capturas de Follaje (Dron / Zona macro)
                     idZonaFinal = item.idZona();
-                    if (idZonaFinal == null) {
+                    if (idZonaFinal != null) {
+                        var zonaExistente = zonaFollajeRepository.findById(idZonaFinal);
+                        if (zonaExistente == null || zonaExistente.isEmpty()) {
+                            String nombreZona = (item.nombreZonaNuevo() != null && !item.nombreZonaNuevo().isBlank())
+                                ? item.nombreZonaNuevo().trim()
+                                : "Zona-" + idZonaFinal.toString().substring(0, 5);
+                            ZonaFollaje nuevaZona = new ZonaFollaje(
+                                idZonaFinal,
+                                item.latitud() != null ? item.latitud() : 19.4200,
+                                item.longitud() != null ? item.longitud() : -99.1800,
+                                Instant.now(),
+                                item.observaciones() != null ? item.observaciones() : "Zona restaurada durante sincronización móvil",
+                                nombreZona,
+                                item.radioMetrosZona() != null ? item.radioMetrosZona() : 50.0,
+                                item.idDispositivo(),
+                                idCuenta
+                            );
+                            zonaFollajeRepository.save(nuevaZona);
+                        }
+                    } else {
                         String nombreZona = (item.nombreZonaNuevo() != null && !item.nombreZonaNuevo().isBlank())
                             ? item.nombreZonaNuevo().trim()
                             : "Zona-" + (item.latitud() != null ? String.format("%.4f", item.latitud()) : UUID.randomUUID().toString().substring(0, 8));
@@ -130,7 +150,32 @@ public class SyncDeteccionUseCase {
                     tipoImagen = "corteza";
                     idArbolFinal = item.idArbol();
 
-                    if (idArbolFinal == null && item.nombreArbolNuevo() != null && !item.nombreArbolNuevo().isBlank()) {
+                    if (idArbolFinal != null) {
+                        var arbolExistente = arbolRepository.findById(idArbolFinal);
+                        if (arbolExistente == null || arbolExistente.isEmpty()) {
+                            // Si el árbol fue creado offline en el móvil o se limpió el backend, lo auto-registramos
+                            String nombreArbol = (item.nombreArbolNuevo() != null && !item.nombreArbolNuevo().isBlank())
+                                ? item.nombreArbolNuevo().trim()
+                                : "Árbol #" + idArbolFinal.toString().substring(0, 5);
+                            String especieArbol = (item.especieArbolNuevo() != null && !item.especieArbolNuevo().isBlank())
+                                ? item.especieArbolNuevo().trim()
+                                : "Cedro blanco (Cupressus lusitanica)";
+
+                            Arbol autoCreado = new Arbol(
+                                idArbolFinal,
+                                nombreArbol,
+                                especieArbol,
+                                item.longitud(),
+                                item.latitud(),
+                                Instant.now(),
+                                item.observaciones() != null ? item.observaciones() : "Registrado en campo durante sincronización móvil",
+                                idCuenta,
+                                item.idDispositivo()
+                            );
+                            arbolRepository.save(autoCreado);
+                            LOG.info("Árbol {} auto-creado en base de datos durante sincronización", idArbolFinal);
+                        }
+                    } else if (item.nombreArbolNuevo() != null && !item.nombreArbolNuevo().isBlank()) {
                         Arbol nuevoArbol = new Arbol(
                             UUID.randomUUID(),
                             item.nombreArbolNuevo().trim(),

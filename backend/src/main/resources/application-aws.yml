@@ -12,6 +12,6 @@ aws:
 
 datasources:
   default:
-    url: ${JDBC_URL:`jdbc:postgresql://${RDS_ENDPOINT:localhost}:5432/${RDS_DB_NAME:descortezadores_db}`}
+    url: ${DATASOURCES_DEFAULT_URL:${JDBC_URL:jdbc:postgresql://${RDS_ENDPOINT:localhost}:5432/${RDS_DB_NAME:descortezadores_db}}}
     username: ${RDS_USERNAME:postgres}
     password: ${RDS_PASSWORD:postgres}

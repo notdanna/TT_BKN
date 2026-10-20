@@ -26,4 +26,10 @@ uploads/
 # Local runtime directories & test outputs
 backend/models/
 *.pdf
+.agents/
+skills-lock.json
+*.env
+.env
+backend/.env
+
 

@@ -27,7 +27,7 @@ dependencies {
     implementation("io.micronaut.validation:micronaut-validation")
     implementation("jakarta.validation:jakarta.validation-api")
     implementation("org.mindrot:jbcrypt:0.4")
-    compileOnly("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-http-client")
     implementation("software.amazon.awssdk:s3:2.29.50")
     implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
     runtimeOnly("ch.qos.logback:logback-classic")

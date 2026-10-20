@@ -59,6 +59,10 @@ class SyncDeteccionUseCaseTest {
                     arbolesGuardados.add(a);
                     return a;
                 }
+                if ("findById".equals(m.getName())) {
+                    UUID id = (UUID) args[0];
+                    return arbolesGuardados.stream().filter(a -> a.idArbol().equals(id)).findFirst();
+                }
                 return null;
             }
         );
@@ -71,6 +75,10 @@ class SyncDeteccionUseCaseTest {
                     ZonaFollaje z = (ZonaFollaje) args[0];
                     zonasGuardadas.add(z);
                     return z;
+                }
+                if ("findById".equals(m.getName())) {
+                    UUID id = (UUID) args[0];
+                    return zonasGuardadas.stream().filter(z -> z.idZona().equals(id)).findFirst();
                 }
                 return null;
             }

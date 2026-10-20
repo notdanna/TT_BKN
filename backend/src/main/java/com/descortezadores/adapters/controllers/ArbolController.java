@@ -80,6 +80,18 @@ public class ArbolController {
         }
     }
 
+    @Delete("/{id}")
+    public HttpResponse<?> eliminarArbol(@PathVariable UUID id) {
+        consultarHistorialUseCase.eliminarArbol(id);
+        return HttpResponse.noContent();
+    }
+
+    @Delete
+    public HttpResponse<?> eliminarTodosArboles() {
+        consultarHistorialUseCase.eliminarTodosArboles();
+        return HttpResponse.noContent();
+    }
+
     private ArbolDTO toDTO(Arbol entity) {
         return new ArbolDTO(
             entity.idArbol(),
