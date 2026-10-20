@@ -1,0 +1,4 @@
+ai-edge-litert
+pillow
+numpy
+requests-toolbelt
