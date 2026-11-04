@@ -1,11 +1,8 @@
 """
-entrenamiento_efficientnetb3.py
+Clasificador binario de corteza (sano / infestado)
 
-Entrena un clasificador binario de corteza (sano / infestado) con
-transfer learning en dos fases sobre EfficientNet-B3, pensado para un
-dataset MODERADAMENTE DESBALANCEADO, LIMITADO EN VOLUMEN y AUN NO
-COMPLETAMENTE DEPURADO.
-Cada decision importante esta comentada con el por que, no solo el que.
+transfer learning en dos fases, pensado para un
+dataset MODERADAMENTE DESBALANCEADO y LIMITADO EN VOLUMEN.
 
 1. EarlyStopping/ModelCheckpoint ya NO monitorean solo val_recall.
    val_recall en un problema binario con sigmoid mide unicamente el
@@ -49,9 +46,6 @@ from sklearn.model_selection import GroupShuffleSplit
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import classification_report, confusion_matrix, precision_recall_curve
 
-# ----------------------------------------------------------------------
-# 0. REPRODUCIBILIDAD Y CONFIGURACION DE GPU
-# ----------------------------------------------------------------------
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
@@ -64,7 +58,6 @@ if gpus:
         for _gpu in gpus:
             tf.config.experimental.set_memory_growth(_gpu, True)
     except RuntimeError as e:
-        # En Apple Silicon (Metal) es normal que esto falle de forma segura
         print(f"Gestión de memoria nativa de Apple Silicon activada.")
 
 IMG_SIZE = 300
@@ -74,9 +67,7 @@ CLASE_A_INDICE = {"sano": 0, "infestado": 1}
 
 GROUP_REGEX = re.compile(r"^([A-Za-z]*\d+)")
 
-# ----------------------------------------------------------------------
-# 1. CONSTRUCCION DEL DATAFRAME DE TRABAJO
-# ----------------------------------------------------------------------
+
 def inferir_grupo(filepath: str) -> str:
     nombre = Path(filepath).stem
     m = GROUP_REGEX.match(nombre)
@@ -125,9 +116,7 @@ def construir_dataframe(data_dir: Path, manifest_path: Optional[Path]) -> pd.Dat
 
     return df
 
-# ----------------------------------------------------------------------
-# 2. DIVISION 80/10/10 CONSCIENTE DE GRUPOS
-# ----------------------------------------------------------------------
+# DIVISION 80/10/10 CONSCIENTE DE GRUPOS
 def dividir_dataset(df: pd.DataFrame):
     gss1 = GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=SEED)
     idx_train, idx_temp = next(gss1.split(df, groups=df["grupo"]))
@@ -220,9 +209,7 @@ class MetricasValidacionCompletas(tf.keras.callbacks.Callback):
             f"[FP={fp} sanos marcados infestado, FN={fn} infestados no detectados]"
         )
 
-# ----------------------------------------------------------------------
-# 4. MODELO: AUMENTO DE DATOS + BASE EFFICIENTNET-B3 + HEAD
-# ----------------------------------------------------------------------
+# MODELO: AUMENTO DE DATOS + BASE EFFICIENTNET-B3 + HEAD
 def construir_modelo(fine_tune_from: Optional[int] = None, dropout: float = 0.3) -> tf.keras.Model:
     aumento_de_datos = tf.keras.Sequential(
         [
