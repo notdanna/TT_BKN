@@ -1,6 +1,13 @@
 micronaut:
   server:
     port: -1
+  security:
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: test-only-secret-no-usar-fuera-de-pruebas-0123456789
 
 datasources:
   default:

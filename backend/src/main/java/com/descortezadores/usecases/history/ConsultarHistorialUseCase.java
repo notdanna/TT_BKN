@@ -70,7 +70,17 @@ public class ConsultarHistorialUseCase {
         return arbolRepository.update(actualizado);
     }
 
-    public void eliminarArbol(UUID idArbol) {
+    /**
+     * Borra un árbol y sus análisis. Solo su dueño o un Administrador.
+     * @throws IllegalArgumentException si no existe (404)
+     * @throws AccesoDenegadoException si el solicitante no puede borrarlo (403)
+     */
+    public void eliminarArbol(UUID idArbol, Solicitante solicitante) {
+        Arbol arbol = arbolRepository.findById(idArbol)
+            .orElseThrow(() -> new IllegalArgumentException("Árbol no encontrado: " + idArbol));
+        if (!solicitante.puedeModificar(arbol.idCuenta())) {
+            throw new AccesoDenegadoException("Solo el dueño del registro o un Administrador puede eliminarlo.");
+        }
         analisisRepository.findByIdArbol(idArbol).forEach(a -> {
             analisisCromaticoRepository.findByIdAnalisis(a.idAnalisis())
                 .ifPresent(c -> analisisCromaticoRepository.deleteById(c.idAnalisisCromatico()));
@@ -79,6 +89,7 @@ public class ConsultarHistorialUseCase {
         arbolRepository.deleteById(idArbol);
     }
 
+    /** Vacía el catálogo de árboles. El controlador lo restringe a Administrador. */
     public void eliminarTodosArboles() {
         analisisCromaticoRepository.deleteAll();
         analisisRepository.deleteAll();
@@ -160,7 +171,17 @@ public class ConsultarHistorialUseCase {
         return zonaFollajeRepository.update(actualizada);
     }
 
-    public void eliminarZonaFollaje(UUID idZona) {
+    /**
+     * Borra una zona y sus análisis. Solo su dueño o un Administrador.
+     * @throws IllegalArgumentException si no existe (404)
+     * @throws AccesoDenegadoException si el solicitante no puede borrarla (403)
+     */
+    public void eliminarZonaFollaje(UUID idZona, Solicitante solicitante) {
+        ZonaFollaje zona = zonaFollajeRepository.findById(idZona)
+            .orElseThrow(() -> new IllegalArgumentException("Zona no encontrada: " + idZona));
+        if (!solicitante.puedeModificar(zona.idCuenta())) {
+            throw new AccesoDenegadoException("Solo el dueño del registro o un Administrador puede eliminarlo.");
+        }
         analisisRepository.findByIdZona(idZona).forEach(a -> {
             analisisCromaticoRepository.findByIdAnalisis(a.idAnalisis())
                 .ifPresent(c -> analisisCromaticoRepository.deleteById(c.idAnalisisCromatico()));
@@ -169,6 +190,7 @@ public class ConsultarHistorialUseCase {
         zonaFollajeRepository.deleteById(idZona);
     }
 
+    /** Vacía el catálogo de zonas. El controlador lo restringe a Administrador. */
     public void eliminarTodasZonasFollaje() {
         analisisRepository.findAll().stream()
             .filter(a -> a.idZona() != null)

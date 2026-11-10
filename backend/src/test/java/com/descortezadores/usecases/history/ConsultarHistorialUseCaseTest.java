@@ -247,7 +247,7 @@ class ConsultarHistorialUseCaseTest {
         );
         cromaticos.add(cr);
 
-        useCase.eliminarArbol(idArbol);
+        useCase.eliminarArbol(idArbol, new Solicitante(null, true)); // como Administrador: aquí se prueba el borrado en cascada
         assertTrue(arboles.isEmpty(), "El árbol individual debió ser eliminado");
         assertTrue(analisisList.isEmpty(), "Los análisis asociados al árbol debieron ser eliminados");
         assertTrue(cromaticos.isEmpty(), "Los análisis cromáticos asociados debieron ser eliminados");
@@ -314,7 +314,7 @@ class ConsultarHistorialUseCaseTest {
         cromaticos.add(cr);
 
         // Eliminación individual
-        useCase.eliminarZonaFollaje(creada.idZona());
+        useCase.eliminarZonaFollaje(creada.idZona(), new Solicitante(null, true)); // como Administrador
         assertTrue(zonas.isEmpty(), "La zona debió ser eliminada");
         assertTrue(analisisList.isEmpty(), "Los análisis asociados a la zona debieron ser eliminados");
         assertTrue(cromaticos.isEmpty(), "Los análisis cromáticos de la zona debieron ser eliminados");

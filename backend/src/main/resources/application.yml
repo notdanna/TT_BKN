@@ -36,7 +36,9 @@ micronaut:
         signatures:
           secret:
             generator:
-              secret: ${JWT_GENERATOR_SIGNATURE_SECRET:9f8a8b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a}
+              # Obligatorio y sin valor por defecto: quien conozca el secreto puede fabricar tokens de
+              # Administrador. Generar con: openssl rand -base64 48 (ver ValidadorSecretoJwt).
+              secret: ${JWT_GENERATOR_SIGNATURE_SECRET}
 
 app:
   upload:
