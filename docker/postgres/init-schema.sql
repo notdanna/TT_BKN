@@ -74,8 +74,9 @@ CREATE TABLE IF NOT EXISTS analisis (
     resultado_clasificacion VARCHAR(50) NOT NULL CHECK (resultado_clasificacion IN ('sano', 'infestado', 'no_determinado')),
     confianza DOUBLE PRECISION,
     observaciones TEXT,
-    id_arbol UUID REFERENCES arbol(id_arbol) ON DELETE SET NULL,
-    id_zona UUID REFERENCES zona_follaje(id_zona) ON DELETE SET NULL,
+    -- CASCADE (no SET NULL): chk_arbol_o_zona no admite un análisis sin su árbol o zona.
+    id_arbol UUID REFERENCES arbol(id_arbol) ON DELETE CASCADE,
+    id_zona UUID REFERENCES zona_follaje(id_zona) ON DELETE CASCADE,
     CONSTRAINT chk_arbol_o_zona CHECK (
         (tipo_imagen = 'corteza' AND id_arbol IS NOT NULL AND id_zona IS NULL) OR
         (tipo_imagen = 'follaje' AND id_zona IS NOT NULL AND id_arbol IS NULL)
