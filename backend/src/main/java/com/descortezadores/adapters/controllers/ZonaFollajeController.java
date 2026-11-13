@@ -36,7 +36,15 @@ public class ZonaFollajeController {
     }
 
     @Get
-    public List<ZonaFollajeDTO> listar() {
+    public List<ZonaFollajeDTO> listar(Authentication authentication) {
+        if (authentication != null
+            && !authentication.getRoles().contains("Administrador")
+            && authentication.getAttributes().containsKey("id_cuenta")) {
+            UUID idCuenta = UUID.fromString(authentication.getAttributes().get("id_cuenta").toString());
+            return consultarHistorialUseCase.listarZonasFollajePorCuenta(idCuenta).stream()
+                .map(this::toDTO)
+                .toList();
+        }
         return consultarHistorialUseCase.listarTodasZonasFollaje().stream()
             .map(this::toDTO)
             .toList();

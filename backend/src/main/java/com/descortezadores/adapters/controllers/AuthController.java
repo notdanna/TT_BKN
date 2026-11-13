@@ -5,12 +5,14 @@ import com.descortezadores.adapters.dto.ErrorResponseDTO;
 import com.descortezadores.domain.entities.Cuenta;
 import com.descortezadores.infrastructure.persistence.CuentaRepository;
 import com.descortezadores.usecases.auth.GestionarPasswordUseCase;
+import io.micronaut.context.annotation.Value;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
+import jakarta.inject.Inject;
 
 import java.util.Map;
 import java.util.Optional;
@@ -29,10 +31,21 @@ public class AuthController {
 
     private final GestionarPasswordUseCase gestionarPasswordUseCase;
     private final CuentaRepository cuentaRepository;
+    private final boolean exposeCodeInResponse;
 
-    public AuthController(GestionarPasswordUseCase gestionarPasswordUseCase, CuentaRepository cuentaRepository) {
+    @Inject
+    public AuthController(
+        GestionarPasswordUseCase gestionarPasswordUseCase,
+        CuentaRepository cuentaRepository,
+        @Value("${aws.ses.expose-code-in-response:true}") boolean exposeCodeInResponse
+    ) {
         this.gestionarPasswordUseCase = gestionarPasswordUseCase;
         this.cuentaRepository = cuentaRepository;
+        this.exposeCodeInResponse = exposeCodeInResponse;
+    }
+
+    public AuthController(GestionarPasswordUseCase gestionarPasswordUseCase, CuentaRepository cuentaRepository) {
+        this(gestionarPasswordUseCase, cuentaRepository, true);
     }
 
     /**
@@ -46,9 +59,15 @@ public class AuthController {
                 return HttpResponse.badRequest(new ErrorResponseDTO("MSG1", "Dato requerido faltante."));
             }
             String codigo = gestionarPasswordUseCase.solicitarRecuperacion(dto.correo());
+            if (exposeCodeInResponse) {
+                return HttpResponse.ok(Map.of(
+                    "mensaje", "Se ha enviado el enlace o código de recuperación a su correo electrónico.",
+                    "codigoRecuperacion", codigo,
+                    "vigenciaHoras", 24
+                ));
+            }
             return HttpResponse.ok(Map.of(
                 "mensaje", "Se ha enviado el enlace o código de recuperación a su correo electrónico.",
-                "codigoRecuperacion", codigo,
                 "vigenciaHoras", 24
             ));
         } catch (IllegalArgumentException e) {

@@ -29,6 +29,7 @@ dependencies {
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("io.micronaut:micronaut-http-client")
     implementation("software.amazon.awssdk:s3:2.29.50")
+    implementation("software.amazon.awssdk:ses:2.29.50")
     implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("org.postgresql:postgresql")

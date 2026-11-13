@@ -15,9 +15,12 @@ import com.descortezadores.infrastructure.persistence.ZonaFollajeRepository;
 import jakarta.inject.Singleton;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Caso de uso: ConsultarHistorialUseCase
@@ -45,6 +48,12 @@ public class ConsultarHistorialUseCase {
 
     public List<Arbol> listarTodosArboles() {
         return arbolRepository.findAllOrderByFechaRegistroDesc();
+    }
+
+    public List<Arbol> listarArbolesPorCuenta(UUID idCuenta) {
+        return arbolRepository.findByIdCuenta(idCuenta).stream()
+            .sorted(Comparator.comparing(Arbol::fechaRegistro, Comparator.nullsLast(Comparator.reverseOrder())))
+            .toList();
     }
 
     public Optional<Arbol> obtenerArbolPorId(UUID idArbol) {
@@ -114,6 +123,21 @@ public class ConsultarHistorialUseCase {
             .toList();
     }
 
+    public List<AnalisisDetalleDTO> obtenerTodosLosAnalisisPorCuenta(UUID idCuenta) {
+        Set<UUID> arbolIds = arbolRepository.findByIdCuenta(idCuenta).stream()
+            .map(Arbol::idArbol)
+            .collect(Collectors.toSet());
+        Set<UUID> zonaIds = zonaFollajeRepository.findByIdCuenta(idCuenta).stream()
+            .map(ZonaFollaje::idZona)
+            .collect(Collectors.toSet());
+
+        return analisisRepository.findAllOrderByFechaCapturaDesc().stream()
+            .filter(a -> (a.idArbol() != null && arbolIds.contains(a.idArbol()))
+                || (a.idZona() != null && zonaIds.contains(a.idZona())))
+            .map(this::toDetalleDTO)
+            .toList();
+    }
+
     public Optional<AnalisisDetalleDTO> obtenerAnalisisPorId(UUID idAnalisis) {
         return analisisRepository.findById(idAnalisis)
             .map(this::toDetalleDTO);
@@ -125,8 +149,29 @@ public class ConsultarHistorialUseCase {
             .toList();
     }
 
+    public List<AnalisisDetalleDTO> obtenerAnalisisPorRangoYCuenta(Instant inicio, Instant fin, UUID idCuenta) {
+        Set<UUID> arbolIds = arbolRepository.findByIdCuenta(idCuenta).stream()
+            .map(Arbol::idArbol)
+            .collect(Collectors.toSet());
+        Set<UUID> zonaIds = zonaFollajeRepository.findByIdCuenta(idCuenta).stream()
+            .map(ZonaFollaje::idZona)
+            .collect(Collectors.toSet());
+
+        return analisisRepository.findByFechaCapturaBetween(inicio, fin).stream()
+            .filter(a -> (a.idArbol() != null && arbolIds.contains(a.idArbol()))
+                || (a.idZona() != null && zonaIds.contains(a.idZona())))
+            .map(this::toDetalleDTO)
+            .toList();
+    }
+
     public List<ZonaFollaje> listarTodasZonasFollaje() {
         return zonaFollajeRepository.findAllOrderByFechaRegistroDesc();
+    }
+
+    public List<ZonaFollaje> listarZonasFollajePorCuenta(UUID idCuenta) {
+        return zonaFollajeRepository.findByIdCuenta(idCuenta).stream()
+            .sorted(Comparator.comparing(ZonaFollaje::fechaRegistro, Comparator.nullsLast(Comparator.reverseOrder())))
+            .toList();
     }
 
     public Optional<ZonaFollaje> obtenerZonaFollajePorId(UUID idZona) {

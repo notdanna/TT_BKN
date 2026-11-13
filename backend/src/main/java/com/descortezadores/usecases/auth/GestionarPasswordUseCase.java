@@ -3,7 +3,10 @@ package com.descortezadores.usecases.auth;
 import com.descortezadores.domain.entities.Cuenta;
 import com.descortezadores.domain.entities.TokenRecuperacion;
 import com.descortezadores.domain.rules.MensajesSistema;
+import com.descortezadores.infrastructure.email.CorreoRecuperacionService;
+import com.descortezadores.infrastructure.email.LogCorreoRecuperacionService;
 import com.descortezadores.infrastructure.persistence.CuentaRepository;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
@@ -30,11 +33,21 @@ public class GestionarPasswordUseCase {
     private static final Pattern PASSWORD_PATTERN = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d|.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).{8,}$");
 
     private final CuentaRepository cuentaRepository;
+    private final CorreoRecuperacionService correoRecuperacionService;
     private final Map<String, TokenRecuperacion> tokensPorCodigo = new ConcurrentHashMap<>();
     private final List<TokenRecuperacion> historialSolicitudes = Collections.synchronizedList(new ArrayList<>());
 
-    public GestionarPasswordUseCase(CuentaRepository cuentaRepository) {
+    @Inject
+    public GestionarPasswordUseCase(
+        CuentaRepository cuentaRepository,
+        CorreoRecuperacionService correoRecuperacionService
+    ) {
         this.cuentaRepository = cuentaRepository;
+        this.correoRecuperacionService = correoRecuperacionService;
+    }
+
+    public GestionarPasswordUseCase(CuentaRepository cuentaRepository) {
+        this(cuentaRepository, new LogCorreoRecuperacionService());
     }
 
     /**
@@ -81,10 +94,12 @@ public class GestionarPasswordUseCase {
             false
         );
 
+        correoRecuperacionService.enviarCodigoRecuperacion(email, cuenta.nombreCompleto(), codigo, 24);
+
         tokensPorCodigo.put(codigo, token);
         historialSolicitudes.add(token);
 
-        LOG.info("Solicitud de recuperación generada para {}: código={} válido hasta={}", email, codigo, expiracion);
+        LOG.info("Solicitud de recuperación generada para {}: válido hasta={}", email, expiracion);
         return codigo;
     }
 

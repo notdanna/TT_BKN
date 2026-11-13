@@ -50,6 +50,11 @@ app:
 
 aws:
   region: ${AWS_REGION:us-east-1}
+  ses:
+    enabled: ${AWS_SES_ENABLED:false}
+    region: ${AWS_SES_REGION:us-east-1}
+    from-email: ${AWS_SES_FROM_EMAIL:no-reply@ecoverde.mx}
+    expose-code-in-response: ${AWS_SES_EXPOSE_CODE_IN_RESPONSE:true}
   s3:
     enabled: ${AWS_S3_ENABLED:false}
     bucket-name: ${AWS_S3_BUCKET:descortezadores-evidencias-2026}

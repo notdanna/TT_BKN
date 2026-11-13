@@ -7,6 +7,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
 
 import java.time.Instant;
@@ -29,7 +30,13 @@ public class AnalisisController {
     }
 
     @Get
-    public List<AnalisisDetalleDTO> listarTodos() {
+    public List<AnalisisDetalleDTO> listarTodos(Authentication authentication) {
+        if (authentication != null
+            && !authentication.getRoles().contains("Administrador")
+            && authentication.getAttributes().containsKey("id_cuenta")) {
+            UUID idCuenta = UUID.fromString(authentication.getAttributes().get("id_cuenta").toString());
+            return consultarHistorialUseCase.obtenerTodosLosAnalisisPorCuenta(idCuenta);
+        }
         return consultarHistorialUseCase.obtenerTodosLosAnalisis();
     }
 
@@ -44,9 +51,15 @@ public class AnalisisController {
      * RN-30, RN-31, RF-12, CU-M05: Resumen de capturas de la jornada actual (00:00 - 23:59)
      */
     @Get("/jornada")
-    public List<AnalisisDetalleDTO> listarJornadaActual() {
+    public List<AnalisisDetalleDTO> listarJornadaActual(Authentication authentication) {
         Instant inicio = Instant.now().truncatedTo(ChronoUnit.DAYS);
         Instant fin = inicio.plus(1, ChronoUnit.DAYS);
+        if (authentication != null
+            && !authentication.getRoles().contains("Administrador")
+            && authentication.getAttributes().containsKey("id_cuenta")) {
+            UUID idCuenta = UUID.fromString(authentication.getAttributes().get("id_cuenta").toString());
+            return consultarHistorialUseCase.obtenerAnalisisPorRangoYCuenta(inicio, fin, idCuenta);
+        }
         return consultarHistorialUseCase.obtenerAnalisisPorRango(inicio, fin);
     }
 }

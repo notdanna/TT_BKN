@@ -42,7 +42,15 @@ public class ArbolController {
     }
 
     @Get
-    public List<ArbolDTO> listar() {
+    public List<ArbolDTO> listar(Authentication authentication) {
+        if (authentication != null
+            && !authentication.getRoles().contains("Administrador")
+            && authentication.getAttributes().containsKey("id_cuenta")) {
+            UUID idCuenta = UUID.fromString(authentication.getAttributes().get("id_cuenta").toString());
+            return consultarHistorialUseCase.listarArbolesPorCuenta(idCuenta).stream()
+                .map(this::toDTO)
+                .toList();
+        }
         return consultarHistorialUseCase.listarTodosArboles().stream()
             .map(this::toDTO)
             .toList();

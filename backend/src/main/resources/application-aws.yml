@@ -2,6 +2,11 @@
 # Activación: MICRONAUT_ENVIRONMENTS=aws o -Dmicronaut.environments=aws
 
 aws:
+  ses:
+    enabled: ${AWS_SES_ENABLED:true}
+    region: ${AWS_SES_REGION:us-east-1}
+    from-email: ${AWS_SES_FROM_EMAIL:no-reply@ecoverde.mx}
+    expose-code-in-response: ${AWS_SES_EXPOSE_CODE_IN_RESPONSE:false}
   s3:
     enabled: true
     region: ${AWS_REGION:us-east-1}
