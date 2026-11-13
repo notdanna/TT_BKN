@@ -242,7 +242,12 @@ def construir_modelo(fine_tune_from: Optional[int] = None, dropout: float = 0.3)
 
     inputs = tf.keras.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
     x = aumento_de_datos(inputs)
-    x = base_model(x, training=True)
+    # Sin forzar training=: Keras usa modo entrenamiento en fit() (el
+    # stochastic depth de EfficientNet regulariza) y modo inferencia en
+    # predict/evaluate/exportacion (determinista). Forzar training=True
+    # dejaba ese dropout activo tambien al evaluar. Las capas BatchNorm
+    # siguen en modo inferencia porque estan congeladas.
+    x = base_model(x)
     x = tf.keras.layers.Dropout(dropout, name="dropout_regularizacion")(x)
     # L2 pequeño en la capa final: con un dataset todavia limitado (~6k
     # imagenes en total) es un seguro barato contra sobreajuste
