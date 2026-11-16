@@ -1,5 +1,11 @@
 # EcoVerde Backend & IA — Sistema de Monitoreo Fitosanitario
 
+[![Backend & AI CI](https://github.com/notdanna/TT_BKN/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/notdanna/TT_BKN/actions/workflows/backend-ci.yml)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Micronaut](https://img.shields.io/badge/Micronaut-4.7.4-000000?logo=micronaut&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-LiteRT-009688?logo=fastapi&logoColor=white)
+
 Ecosistema backend centralizado (Micronaut + PostgreSQL + AWS Lambda IA) para la detección temprana y control del escarabajo descortezador (*Dendroctonus spp.* y *Ips spp.*) en coníferas mexicanas, bajo la **NOM-019-SEMARNAT-2017**.
 
 ---
