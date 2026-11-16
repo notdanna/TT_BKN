@@ -1,0 +1,73 @@
+micronaut:
+  application:
+    name: backend
+  server:
+    port: 8080
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowed-origins:
+            - "http://localhost:4200"
+            - "http://localhost:3000"
+            - "http://localhost:8080"
+          allowed-methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          allowed-headers:
+            - Content-Type
+            - Authorization
+            - Accept
+            - Origin
+            - X-Requested-With
+    multipart:
+      max-file-size: 10MB
+  security:
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              # Obligatorio y sin valor por defecto: quien conozca el secreto puede fabricar tokens de
+              # Administrador. Generar con: openssl rand -base64 48 (ver ValidadorSecretoJwt).
+              secret: ${JWT_GENERATOR_SIGNATURE_SECRET}
+
+app:
+  upload:
+    dir: ${UPLOAD_DIR:uploads/evidencias/}
+  models:
+    dir: ${MODELS_DIR:models/}
+    latest-version: ${MODEL_LATEST_VERSION:1.0.0}
+    default-filename: ${MODEL_DEFAULT_FILENAME:light_classifier.tflite}
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  ses:
+    enabled: ${AWS_SES_ENABLED:false}
+    region: ${AWS_SES_REGION:us-east-1}
+    from-email: ${AWS_SES_FROM_EMAIL:no-reply@ecoverde.mx}
+    expose-code-in-response: ${AWS_SES_EXPOSE_CODE_IN_RESPONSE:true}
+  s3:
+    enabled: ${AWS_S3_ENABLED:false}
+    bucket-name: ${AWS_S3_BUCKET:descortezadores-evidencias-2026}
+    evidencias-prefix: ${AWS_S3_EVIDENCIAS_PREFIX:evidencias/}
+    modelos-prefix: ${AWS_S3_MODELOS_PREFIX:modelos/}
+    cdn-url: ${AWS_S3_CDN_URL:}
+
+datasources:
+  default:
+    url: ${DATASOURCES_DEFAULT_URL:${JDBC_URL:jdbc:postgresql://localhost:5432/descortezadores_db}}
+    username: ${JDBC_USER:`postgres`}
+    password: ${JDBC_PASSWORD:`postgres`}
+    driver-class-name: org.postgresql.Driver
+    db-type: postgres
+    dialect: POSTGRES
+    schema-generate: NONE
