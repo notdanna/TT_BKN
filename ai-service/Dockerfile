@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/python:3.15
 
 # Instalar dependencias
 COPY requirements.txt ${LAMBDA_TASK_ROOT}/
