@@ -14,6 +14,8 @@ import com.descortezadores.infrastructure.persistence.ArbolRepository;
 import com.descortezadores.infrastructure.persistence.CuentaDispositivoRepository;
 import com.descortezadores.infrastructure.persistence.ZonaFollajeRepository;
 import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.Nullable;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,8 @@ public class SyncDeteccionUseCase {
     private final AnalisisCromaticoRepository analisisCromaticoRepository;
     private final CuentaDispositivoRepository cuentaDispositivoRepository;
     private final com.descortezadores.infrastructure.storage.AlmacenamientoService almacenamientoService;
+    @Nullable
+    private final AseguradorDispositivo aseguradorDispositivo;
 
     public SyncDeteccionUseCase(
         ArbolRepository arbolRepository,
@@ -54,12 +58,34 @@ public class SyncDeteccionUseCase {
         CuentaDispositivoRepository cuentaDispositivoRepository,
         com.descortezadores.infrastructure.storage.AlmacenamientoService almacenamientoService
     ) {
+        this(
+            arbolRepository,
+            zonaFollajeRepository,
+            analisisRepository,
+            analisisCromaticoRepository,
+            cuentaDispositivoRepository,
+            almacenamientoService,
+            null
+        );
+    }
+
+    @Inject
+    public SyncDeteccionUseCase(
+        ArbolRepository arbolRepository,
+        ZonaFollajeRepository zonaFollajeRepository,
+        AnalisisRepository analisisRepository,
+        AnalisisCromaticoRepository analisisCromaticoRepository,
+        CuentaDispositivoRepository cuentaDispositivoRepository,
+        com.descortezadores.infrastructure.storage.AlmacenamientoService almacenamientoService,
+        @Nullable AseguradorDispositivo aseguradorDispositivo
+    ) {
         this.arbolRepository = arbolRepository;
         this.zonaFollajeRepository = zonaFollajeRepository;
         this.analisisRepository = analisisRepository;
         this.analisisCromaticoRepository = analisisCromaticoRepository;
         this.cuentaDispositivoRepository = cuentaDispositivoRepository;
         this.almacenamientoService = almacenamientoService;
+        this.aseguradorDispositivo = aseguradorDispositivo;
     }
 
     /**
@@ -96,6 +122,40 @@ public class SyncDeteccionUseCase {
                         throw new IllegalStateException(MensajesSistema.MSG05.getCodigo() + ": " + MensajesSistema.MSG05.getDescripcion());
                     }
                 }
+                UUID idDispositivoSegura = aseguradorDispositivo != null
+                    ? aseguradorDispositivo.asegurar(item.idDispositivo(), idCuenta, null)
+                    : item.idDispositivo();
+
+                // Idempotencia: si el análisis ya existe en el servidor, actualizar sus observaciones sin duplicar
+                if (item.idAnalisisLocal() != null) {
+                    var existente = analisisRepository.findById(item.idAnalisisLocal());
+                    if (existente != null && existente.isPresent()) {
+                        Analisis prev = existente.get();
+                        String cleanObs = (item.observaciones() != null && !item.observaciones().trim().isEmpty())
+                            ? item.observaciones().trim()
+                            : null;
+                        Analisis actualizado = new Analisis(
+                            prev.idAnalisis(),
+                            prev.rutaEvidencia(),
+                            prev.latitudCaptura(),
+                            prev.longitudCaptura(),
+                            prev.fechaCaptura(),
+                            Instant.now(),
+                            "sincronizado",
+                            prev.tipoImagen(),
+                            prev.resultadoClasificacion(),
+                            prev.confianza(),
+                            cleanObs,
+                            prev.idArbol(),
+                            prev.idZona(),
+                            prev.idCuenta() != null ? prev.idCuenta() : idCuenta,
+                            prev.idDispositivo() != null ? prev.idDispositivo() : idDispositivoSegura
+                        );
+                        analisisRepository.update(actualizado);
+                        sincronizados.add(prev.idAnalisis());
+                        continue;
+                    }
+                }
 
                 String tipoImagen = (item.tipoImagen() != null && !item.tipoImagen().isBlank())
                     ? item.tipoImagen().toLowerCase().trim()
@@ -121,10 +181,23 @@ public class SyncDeteccionUseCase {
                                 item.observaciones() != null ? item.observaciones() : "Zona restaurada durante sincronización móvil",
                                 nombreZona,
                                 item.radioMetrosZona() != null ? item.radioMetrosZona() : 50.0,
-                                item.idDispositivo(),
+                                idDispositivoSegura,
                                 idCuenta
                             );
                             zonaFollajeRepository.save(nuevaZona);
+                        } else if (zonaExistente.get().idDispositivo() == null && idDispositivoSegura != null) {
+                            ZonaFollaje prevZona = zonaExistente.get();
+                            zonaFollajeRepository.update(new ZonaFollaje(
+                                prevZona.idZona(),
+                                prevZona.latitudCentro(),
+                                prevZona.longitudCentro(),
+                                prevZona.fechaRegistro(),
+                                prevZona.descripcion(),
+                                prevZona.nombreZona(),
+                                prevZona.radioMetros(),
+                                idDispositivoSegura,
+                                prevZona.idCuenta()
+                            ));
                         }
                     } else {
                         String nombreZona = (item.nombreZonaNuevo() != null && !item.nombreZonaNuevo().isBlank())
@@ -139,7 +212,7 @@ public class SyncDeteccionUseCase {
                             item.observaciones() != null ? item.observaciones() : "Zona registrada en campo durante captura aérea",
                             nombreZona,
                             item.radioMetrosZona() != null ? item.radioMetrosZona() : 50.0,
-                            item.idDispositivo(),
+                            idDispositivoSegura,
                             idCuenta
                         );
                         ZonaFollaje guardada = zonaFollajeRepository.save(nuevaZona);
@@ -170,10 +243,23 @@ public class SyncDeteccionUseCase {
                                 Instant.now(),
                                 item.observaciones() != null ? item.observaciones() : "Registrado en campo durante sincronización móvil",
                                 idCuenta,
-                                item.idDispositivo()
+                                idDispositivoSegura
                             );
                             arbolRepository.save(autoCreado);
                             LOG.info("Árbol {} auto-creado en base de datos durante sincronización", idArbolFinal);
+                        } else if (arbolExistente.get().idDispositivo() == null && idDispositivoSegura != null) {
+                            Arbol prevArbol = arbolExistente.get();
+                            arbolRepository.update(new Arbol(
+                                prevArbol.idArbol(),
+                                prevArbol.nombreEspecifico(),
+                                prevArbol.especie(),
+                                prevArbol.longitud(),
+                                prevArbol.latitud(),
+                                prevArbol.fechaRegistro(),
+                                prevArbol.descripcion(),
+                                prevArbol.idCuenta(),
+                                idDispositivoSegura
+                            ));
                         }
                     } else if (item.nombreArbolNuevo() != null && !item.nombreArbolNuevo().isBlank()) {
                         Arbol nuevoArbol = new Arbol(
@@ -185,7 +271,7 @@ public class SyncDeteccionUseCase {
                             Instant.now(),
                             item.observaciones() != null ? item.observaciones() : "Registrado en campo durante sincronización",
                             idCuenta,
-                            item.idDispositivo()
+                            idDispositivoSegura
                         );
                         Arbol arbolCreado = arbolRepository.save(nuevoArbol);
                         idArbolFinal = arbolCreado.idArbol();
@@ -255,7 +341,9 @@ public class SyncDeteccionUseCase {
                     item.confianza(),
                     item.observaciones(),
                     idArbolFinal,
-                    idZonaFinal
+                    idZonaFinal,
+                    idCuenta,
+                    idDispositivoSegura
                 );
                 Analisis analisisGuardado = analisisRepository.save(analisis);
 

@@ -93,6 +93,16 @@ class SyncDeteccionUseCaseTest {
                     analisisGuardados.add(a);
                     return a;
                 }
+                if ("findById".equals(m.getName())) {
+                    UUID id = (UUID) args[0];
+                    return analisisGuardados.stream().filter(a -> a.idAnalisis().equals(id)).findFirst();
+                }
+                if ("update".equals(m.getName())) {
+                    Analisis a = (Analisis) args[0];
+                    analisisGuardados.removeIf(existing -> existing.idAnalisis().equals(a.idAnalisis()));
+                    analisisGuardados.add(a);
+                    return a;
+                }
                 return null;
             }
         );
@@ -358,5 +368,42 @@ class SyncDeteccionUseCaseTest {
         assertEquals(0, resp.totalSincronizados());
         assertEquals(1, resp.errores().size());
         assertTrue(resp.errores().get(0).contains(MensajesSistema.MSG05.getCodigo()));
+    }
+
+    @Test
+    @DisplayName("Idempotencia de sync: re-sincronizar un análisis existente actualiza sus observaciones")
+    void testResyncActualizaObservaciones() {
+        UUID idArbol = UUID.randomUUID();
+        UUID idAnalisis = UUID.randomUUID();
+
+        analisisGuardados.add(new Analisis(
+            idAnalisis, "/evidencias/existente.jpg", 19.421, -99.182,
+            Instant.now(), Instant.now(), "sincronizado", "corteza", "sano", 0.91,
+            "Nota original", idArbol, null, null, null
+        ));
+
+        UUID idDispositivoSync = UUID.randomUUID();
+        SyncItemDTO item = new SyncItemDTO(
+            idAnalisis,
+            idArbol,
+            null, null,
+            19.421, -99.182,
+            Instant.now(),
+            "corteza",
+            "sano",
+            0.91,
+            "Nota editada offline",
+            0.05, 0.05, 0.10, 0.80,
+            null, idDispositivoSync, null, null, null
+        );
+
+        SyncBatchResponse resp = useCase.sincronizar(List.of(item), idCuentaTest);
+
+        assertEquals(1, resp.totalSincronizados());
+        assertTrue(resp.errores().isEmpty());
+        assertEquals(1, analisisGuardados.size());
+        assertEquals("Nota editada offline", analisisGuardados.get(0).observaciones());
+        assertEquals(idCuentaTest, analisisGuardados.get(0).idCuenta());
+        assertEquals(idDispositivoSync, analisisGuardados.get(0).idDispositivo());
     }
 }

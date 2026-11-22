@@ -1,11 +1,19 @@
 package com.descortezadores.adapters.controllers;
 
+import com.descortezadores.adapters.dto.ActualizarAnalisisObservacionesDTO;
 import com.descortezadores.adapters.dto.AnalisisDetalleDTO;
+import com.descortezadores.adapters.dto.ErrorResponseDTO;
+import com.descortezadores.domain.rules.MensajesSistema;
+import com.descortezadores.usecases.history.AccesoDenegadoException;
 import com.descortezadores.usecases.history.ConsultarHistorialUseCase;
+import com.descortezadores.usecases.history.Solicitante;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
 import io.micronaut.security.rules.SecurityRule;
@@ -45,6 +53,32 @@ public class AnalisisController {
         return consultarHistorialUseCase.obtenerAnalisisPorId(id)
             .map(HttpResponse::ok)
             .orElseGet(HttpResponse::notFound);
+    }
+
+    /**
+     * Actualiza las observaciones individuales de una captura/análisis específico.
+     */
+    @Put("/{id}")
+    public HttpResponse<?> actualizarObservaciones(
+        @PathVariable UUID id,
+        @Body ActualizarAnalisisObservacionesDTO dto,
+        Authentication authentication
+    ) {
+        try {
+            Solicitante solicitante = authentication != null ? ArbolController.solicitante(authentication) : null;
+            String observaciones = dto != null ? dto.observaciones() : null;
+            AnalisisDetalleDTO actualizado = consultarHistorialUseCase.actualizarObservacionesAnalisis(
+                id,
+                observaciones,
+                solicitante
+            );
+            return HttpResponse.ok(actualizado);
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.notFound(new ErrorResponseDTO(MensajesSistema.MSG14.getCodigo(), e.getMessage()));
+        } catch (AccesoDenegadoException e) {
+            return HttpResponse.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponseDTO(MensajesSistema.MSG29.getCodigo(), e.getMessage()));
+        }
     }
 
     /**

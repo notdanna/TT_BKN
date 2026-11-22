@@ -21,5 +21,6 @@ public record AnalisisDetalleDTO(
     @Nullable String observaciones,
     @Nullable UUID idArbol,
     @Nullable UUID idZona,
-    @Nullable AnalisisCromaticoDTO cromatico
+    @Nullable AnalisisCromaticoDTO cromatico,
+    @Nullable UUID idDispositivo
 ) {}

@@ -57,7 +57,15 @@ public record Analisis(
 
     @MappedProperty("id_zona")
     @Nullable
-    UUID idZona
+    UUID idZona,
+
+    @MappedProperty("id_cuenta")
+    @Nullable
+    UUID idCuenta,
+
+    @MappedProperty("id_dispositivo")
+    @Nullable
+    UUID idDispositivo
 ) {
     public static Analisis nuevoCorteza(
         String rutaEvidencia,
@@ -82,6 +90,8 @@ public record Analisis(
             confianza,
             observaciones,
             idArbol,
+            null,
+            null,
             null
         );
     }

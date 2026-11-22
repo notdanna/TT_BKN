@@ -396,6 +396,21 @@ La arquitectura móvil es **Offline-First**: la aplicación trabaja primordialme
 
 ---
 
+### `PUT /api/v1/analisis/{id}`
+* **Propósito en App:** Actualizar las observaciones individuales de una fotografía/análisis específico ya sincronizado.
+* **Autenticación:** Requerida (`Authorization: Bearer <token>`). Solo el dueño del registro o un `Administrador`.
+* **Parámetros Path:** `id` (UUID del análisis).
+* **Cuerpo de la Petición:**
+```json
+{
+  "observaciones": "Grumos de resina fresca en cara norte"
+}
+```
+* **Respuesta Exitosa (`200 OK`):** Objeto `AnalisisDetalleDTO` actualizado.
+* **Errores:** `403 Forbidden` si pertenece a otra cuenta, `404 Not Found` si no existe.
+
+---
+
 ### `GET /api/v1/estadisticas/focos`
 * **Propósito en App:** Obtener los **Focos de Infestación Activos** calculados por el backend según la norma NOM-019-SEMARNAT-2017 (`RF-14`, `RN-25`, `RN-27`).
 * **Uso Offline:** La aplicación descarga esta lista periódicamente y la guarda en SQLite para que el servicio de geolocalización en segundo plano dispare la **Alerta de Proximidad** al acercarse a menos de 50 metros, **sin necesidad de tener internet** (`RN-28`, `RN-29`).
@@ -476,5 +491,6 @@ La arquitectura móvil es **Offline-First**: la aplicación trabaja primordialme
 | `/api/v1/zonas-follaje` | `GET` | Sí | — | `List<ZonaFollajeDTO>` |
 | `/api/v1/analisis/jornada` | `GET` | Sí | — | `List<AnalisisDetalleDTO>` |
 | `/api/v1/analisis/{id}` | `GET` | Sí | — | `AnalisisDetalleDTO` |
+| `/api/v1/analisis/{id}` | `PUT` | Sí | `ActualizarAnalisisObservacionesDTO` | `AnalisisDetalleDTO` |
 | `/api/v1/estadisticas/focos` | `GET` | Sí | — | `List<FocoInfestacionDTO>` |
 | `/api/v1/estadisticas/dashboard` | `GET` | Sí | — | `DashboardEstadisticasDTO` |

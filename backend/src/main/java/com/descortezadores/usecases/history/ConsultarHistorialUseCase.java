@@ -12,6 +12,9 @@ import com.descortezadores.infrastructure.persistence.AnalisisCromaticoRepositor
 import com.descortezadores.infrastructure.persistence.AnalisisRepository;
 import com.descortezadores.infrastructure.persistence.ArbolRepository;
 import com.descortezadores.infrastructure.persistence.ZonaFollajeRepository;
+import com.descortezadores.usecases.sync.AseguradorDispositivo;
+import io.micronaut.core.annotation.Nullable;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.time.Instant;
@@ -33,6 +36,8 @@ public class ConsultarHistorialUseCase {
     private final AnalisisRepository analisisRepository;
     private final AnalisisCromaticoRepository analisisCromaticoRepository;
     private final ZonaFollajeRepository zonaFollajeRepository;
+    @Nullable
+    private final AseguradorDispositivo aseguradorDispositivo;
 
     public ConsultarHistorialUseCase(
         ArbolRepository arbolRepository,
@@ -40,10 +45,22 @@ public class ConsultarHistorialUseCase {
         AnalisisCromaticoRepository analisisCromaticoRepository,
         ZonaFollajeRepository zonaFollajeRepository
     ) {
+        this(arbolRepository, analisisRepository, analisisCromaticoRepository, zonaFollajeRepository, null);
+    }
+
+    @Inject
+    public ConsultarHistorialUseCase(
+        ArbolRepository arbolRepository,
+        AnalisisRepository analisisRepository,
+        AnalisisCromaticoRepository analisisCromaticoRepository,
+        ZonaFollajeRepository zonaFollajeRepository,
+        @Nullable AseguradorDispositivo aseguradorDispositivo
+    ) {
         this.arbolRepository = arbolRepository;
         this.analisisRepository = analisisRepository;
         this.analisisCromaticoRepository = analisisCromaticoRepository;
         this.zonaFollajeRepository = zonaFollajeRepository;
+        this.aseguradorDispositivo = aseguradorDispositivo;
     }
 
     public List<Arbol> listarTodosArboles() {
@@ -143,6 +160,59 @@ public class ConsultarHistorialUseCase {
             .map(this::toDetalleDTO);
     }
 
+    /**
+     * Actualiza las observaciones individuales de un análisis/captura existente.
+     * Solo el dueño del árbol/zona padre o un Administrador puede modificarlo.
+     */
+    public AnalisisDetalleDTO actualizarObservacionesAnalisis(
+        UUID idAnalisis,
+        String observaciones,
+        Solicitante solicitante
+    ) {
+        Analisis existente = analisisRepository.findById(idAnalisis)
+            .orElseThrow(() -> new IllegalArgumentException("Análisis no encontrado con ID: " + idAnalisis));
+
+        UUID ownerId = null;
+        if (existente.idArbol() != null) {
+            ownerId = arbolRepository.findById(existente.idArbol())
+                .map(Arbol::idCuenta)
+                .orElse(null);
+        } else if (existente.idZona() != null) {
+            ownerId = zonaFollajeRepository.findById(existente.idZona())
+                .map(ZonaFollaje::idCuenta)
+                .orElse(null);
+        }
+
+        if (solicitante != null && ownerId != null && !solicitante.puedeModificar(ownerId)) {
+            throw new AccesoDenegadoException("Solo el dueño del registro o un Administrador puede modificarlo.");
+        }
+
+        String cleanObs = (observaciones != null && !observaciones.trim().isEmpty())
+            ? observaciones.trim()
+            : null;
+
+        Analisis actualizado = new Analisis(
+            existente.idAnalisis(),
+            existente.rutaEvidencia(),
+            existente.latitudCaptura(),
+            existente.longitudCaptura(),
+            existente.fechaCaptura(),
+            existente.fechaSincronizacion(),
+            existente.estadoSincronizacion(),
+            existente.tipoImagen(),
+            existente.resultadoClasificacion(),
+            existente.confianza(),
+            cleanObs,
+            existente.idArbol(),
+            existente.idZona(),
+            existente.idCuenta(),
+            existente.idDispositivo()
+        );
+
+        Analisis guardado = analisisRepository.update(actualizado);
+        return toDetalleDTO(guardado);
+    }
+
     public List<AnalisisDetalleDTO> obtenerAnalisisPorRango(Instant inicio, Instant fin) {
         return analisisRepository.findByFechaCapturaBetween(inicio, fin).stream()
             .map(this::toDetalleDTO)
@@ -180,9 +250,26 @@ public class ConsultarHistorialUseCase {
 
     public ZonaFollaje registrarZonaFollaje(ZonaFollajeDTO dto, UUID idCuenta) {
         UUID id = dto.idZona() != null ? dto.idZona() : UUID.randomUUID();
+        UUID idDispositivo = aseguradorDispositivo != null
+            ? aseguradorDispositivo.asegurar(dto.idDispositivo(), idCuenta, null)
+            : dto.idDispositivo();
         var existente = zonaFollajeRepository.findById(id);
         if (existente.isPresent()) {
-            return existente.get();
+            ZonaFollaje prev = existente.get();
+            if (prev.idDispositivo() == null && idDispositivo != null) {
+                return zonaFollajeRepository.update(new ZonaFollaje(
+                    prev.idZona(),
+                    prev.latitudCentro(),
+                    prev.longitudCentro(),
+                    prev.fechaRegistro(),
+                    prev.descripcion(),
+                    prev.nombreZona(),
+                    prev.radioMetros(),
+                    idDispositivo,
+                    prev.idCuenta()
+                ));
+            }
+            return prev;
         }
         ZonaFollaje nueva = new ZonaFollaje(
             id,
@@ -192,7 +279,7 @@ public class ConsultarHistorialUseCase {
             dto.descripcion(),
             dto.nombreZona() != null ? dto.nombreZona() : "Zona-" + id.toString().substring(0, 5),
             dto.radioMetros() != null ? dto.radioMetros() : 50.0,
-            dto.idDispositivo(),
+            idDispositivo,
             idCuenta
         );
         return zonaFollajeRepository.save(nueva);
@@ -272,7 +359,8 @@ public class ConsultarHistorialUseCase {
             a.observaciones(),
             a.idArbol(),
             a.idZona(),
-            cromaticoDTO
+            cromaticoDTO,
+            a.idDispositivo()
         );
     }
 }

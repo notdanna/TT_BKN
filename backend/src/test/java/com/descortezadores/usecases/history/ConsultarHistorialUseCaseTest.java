@@ -84,6 +84,12 @@ class ConsultarHistorialUseCaseTest {
                     UUID id = (UUID) args[0];
                     return analisisList.stream().filter(a -> a.idAnalisis().equals(id)).findFirst();
                 }
+                if ("update".equals(name)) {
+                    Analisis a = (Analisis) args[0];
+                    analisisList.removeIf(existing -> existing.idAnalisis().equals(a.idAnalisis()));
+                    analisisList.add(a);
+                    return a;
+                }
                 if ("delete".equals(name)) {
                     Analisis a = (Analisis) args[0];
                     analisisList.removeIf(existing -> existing.idAnalisis().equals(a.idAnalisis()));
@@ -204,7 +210,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img.jpg", 19.42, -99.18, Instant.now(), Instant.now(),
             "sincronizado", "corteza", "infestado", 0.91, "Daño visible",
-            idArbol, null
+            idArbol, null, null, null
         );
         analisisList.add(an);
 
@@ -238,7 +244,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img.jpg", 19.42, -99.18, Instant.now(), Instant.now(),
             "sincronizado", "corteza", "infestado", 0.91, "Daño visible",
-            idArbol, null
+            idArbol, null, null, null
         );
         analisisList.add(an);
 
@@ -304,7 +310,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img_follaje.jpg", 19.4250, -99.1850, Instant.now(), Instant.now(),
             "sincronizado", "follaje", "sano", 0.88, "Follaje denso",
-            null, creada.idZona()
+            null, creada.idZona(), null, null
         );
         analisisList.add(an);
 
@@ -324,5 +330,49 @@ class ConsultarHistorialUseCaseTest {
         assertFalse(zonas.isEmpty());
         useCase.eliminarTodasZonasFollaje();
         assertTrue(zonas.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Actualización de observaciones individuales de un análisis con control de acceso")
+    void testActualizarObservacionesAnalisis() {
+        UUID idCuentaDueno = UUID.randomUUID();
+        UUID idCuentaAjena = UUID.randomUUID();
+        UUID idArbol = UUID.randomUUID();
+        UUID idAnalisis = UUID.randomUUID();
+
+        arboles.add(new Arbol(
+            idArbol, "Pino-01", "Pinus spp.", -99.18, 19.42, Instant.now(),
+            "Observación general del árbol", idCuentaDueno, null
+        ));
+        analisisList.add(new Analisis(
+            idAnalisis, "/img_1.jpg", 19.42, -99.18, Instant.now(), Instant.now(),
+            "sincronizado", "corteza", "infestado", 0.92, "Nota inicial",
+            idArbol, null, idCuentaDueno, null
+        ));
+
+        AnalisisDetalleDTO actualizado = useCase.actualizarObservacionesAnalisis(
+            idAnalisis,
+            "  Galerías activas en cara norte  ",
+            new Solicitante(idCuentaDueno, false)
+        );
+        assertEquals("Galerías activas en cara norte", actualizado.observaciones());
+
+        // Limpiar con espacios en blanco normaliza a null
+        AnalisisDetalleDTO limpiado = useCase.actualizarObservacionesAnalisis(
+            idAnalisis,
+            "   ",
+            new Solicitante(null, true)
+        );
+        assertNull(limpiado.observaciones());
+
+        // Otro experto sin rol Administrador no puede modificarlo
+        assertThrows(
+            AccesoDenegadoException.class,
+            () -> useCase.actualizarObservacionesAnalisis(
+                idAnalisis,
+                "Intento no autorizado",
+                new Solicitante(idCuentaAjena, false)
+            )
+        );
     }
 }
