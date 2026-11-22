@@ -59,6 +59,8 @@ public record Analisis(
     @Nullable
     UUID idZona,
 
+    // Cuenta que subió el análisis (sincronización móvil). Nulo en los registros anteriores a
+    // la migración 2026-11-17_analisis_id_cuenta.sql: autor desconocido.
     @MappedProperty("id_cuenta")
     @Nullable
     UUID idCuenta,
@@ -75,7 +77,8 @@ public record Analisis(
         String resultadoClasificacion,
         Double confianza,
         String observaciones,
-        UUID idArbol
+        UUID idArbol,
+        UUID idCuenta
     ) {
         return new Analisis(
             UUID.randomUUID(),
@@ -91,7 +94,7 @@ public record Analisis(
             observaciones,
             idArbol,
             null,
-            null,
+            idCuenta,
             null
         );
     }

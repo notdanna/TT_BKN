@@ -22,5 +22,7 @@ public record AnalisisDetalleDTO(
     @Nullable UUID idArbol,
     @Nullable UUID idZona,
     @Nullable AnalisisCromaticoDTO cromatico,
+    // Cuenta que subió el análisis; nulo si es anterior a que se registrara el autor.
+    @Nullable UUID idCuenta,
     @Nullable UUID idDispositivo
 ) {}

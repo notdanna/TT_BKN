@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS analisis (
     -- CASCADE (no SET NULL): chk_arbol_o_zona no admite un análisis sin su árbol o zona.
     id_arbol UUID REFERENCES arbol(id_arbol) ON DELETE CASCADE,
     id_zona UUID REFERENCES zona_follaje(id_zona) ON DELETE CASCADE,
+    -- Cuenta que subió el análisis (autor). SET NULL: borrar la cuenta no borra sus análisis.
+    -- Nulo en registros anteriores a 2026-11-17_analisis_id_cuenta.sql (autor desconocido).
     id_cuenta UUID REFERENCES cuenta(id_cuenta) ON DELETE SET NULL,
     id_dispositivo UUID REFERENCES dispositivo(id_dispositivo) ON DELETE SET NULL,
     CONSTRAINT chk_arbol_o_zona CHECK (

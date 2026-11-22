@@ -360,6 +360,7 @@ public class ConsultarHistorialUseCase {
             a.idArbol(),
             a.idZona(),
             cromaticoDTO,
+            a.idCuenta(),
             a.idDispositivo()
         );
     }

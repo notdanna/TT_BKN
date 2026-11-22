@@ -342,7 +342,7 @@ public class SyncDeteccionUseCase {
                     item.observaciones(),
                     idArbolFinal,
                     idZonaFinal,
-                    idCuenta,
+                    idCuenta, // autor: la cuenta autenticada que sincroniza
                     idDispositivoSegura
                 );
                 Analisis analisisGuardado = analisisRepository.save(analisis);
