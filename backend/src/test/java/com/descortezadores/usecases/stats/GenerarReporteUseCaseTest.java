@@ -47,8 +47,8 @@ class GenerarReporteUseCaseTest {
         arbolesList.add(new Arbol(idArbol1, "Fresno Seccion 2", "Fraxinus uhdei", -99.19, 19.41, Instant.now(), null, idCuenta, null));
         arbolesList.add(new Arbol(idArbol2, "Cedro Castillo", "Cupressus lusitanica", -99.18, 19.42, Instant.now(), null, idCuenta, null));
 
-        analisisList.add(new Analisis(UUID.randomUUID(), "/img1.jpg", 19.41, -99.19, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.95, "Grumos resina", idArbol1, null));
-        analisisList.add(new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42, -99.18, Instant.now(), Instant.now(), "sincronizado", "corteza", "sano", 0.90, "Sin indicios", idArbol2, null));
+        analisisList.add(new Analisis(UUID.randomUUID(), "/img1.jpg", 19.41, -99.19, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.95, "Grumos resina", idArbol1, null, null));
+        analisisList.add(new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42, -99.18, Instant.now(), Instant.now(), "sincronizado", "corteza", "sano", 0.90, "Sin indicios", idArbol2, null, null));
 
         analisisRepository = (AnalisisRepository) Proxy.newProxyInstance(
             AnalisisRepository.class.getClassLoader(),

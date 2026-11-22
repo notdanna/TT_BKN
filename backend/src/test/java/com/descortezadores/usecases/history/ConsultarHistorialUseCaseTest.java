@@ -204,7 +204,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img.jpg", 19.42, -99.18, Instant.now(), Instant.now(),
             "sincronizado", "corteza", "infestado", 0.91, "Daño visible",
-            idArbol, null
+            idArbol, null, null
         );
         analisisList.add(an);
 
@@ -238,7 +238,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img.jpg", 19.42, -99.18, Instant.now(), Instant.now(),
             "sincronizado", "corteza", "infestado", 0.91, "Daño visible",
-            idArbol, null
+            idArbol, null, null
         );
         analisisList.add(an);
 
@@ -304,7 +304,7 @@ class ConsultarHistorialUseCaseTest {
         Analisis an = new Analisis(
             idAnalisis, "/img_follaje.jpg", 19.4250, -99.1850, Instant.now(), Instant.now(),
             "sincronizado", "follaje", "sano", 0.88, "Follaje denso",
-            null, creada.idZona()
+            null, creada.idZona(), null
         );
         analisisList.add(an);
 

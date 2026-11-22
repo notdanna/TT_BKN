@@ -255,7 +255,8 @@ public class SyncDeteccionUseCase {
                     item.confianza(),
                     item.observaciones(),
                     idArbolFinal,
-                    idZonaFinal
+                    idZonaFinal,
+                    idCuenta // autor: la cuenta autenticada que sincroniza
                 );
                 Analisis analisisGuardado = analisisRepository.save(analisis);
 

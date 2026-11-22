@@ -37,8 +37,8 @@ class ConsultarEstadisticasUseCaseTest {
         List<Arbol> arboles = List.of(a1, a2, a3);
 
         // a1 es infestado, a2 es sano, a3 no tiene análisis (no_determinado)
-        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.421, -99.182, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.95, null, arbol1Id, null);
-        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.422, -99.183, Instant.now(), Instant.now(), "sincronizado", "corteza", "sano", 0.88, null, arbol2Id, null);
+        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.421, -99.182, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.95, null, arbol1Id, null, null);
+        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.422, -99.183, Instant.now(), Instant.now(), "sincronizado", "corteza", "sano", 0.88, null, arbol2Id, null, null);
 
         List<Analisis> analisisList = List.of(an1, an2);
         List<ZonaFollaje> zonas = List.of();
@@ -70,9 +70,9 @@ class ConsultarEstadisticasUseCaseTest {
 
         List<Arbol> arboles = List.of(a1, a2, a3);
 
-        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.42100, -99.18200, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.92, null, a1Id, null);
-        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42105, -99.18205, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.90, null, a2Id, null);
-        Analisis an3 = new Analisis(UUID.randomUUID(), "/img3.jpg", 19.42108, -99.18208, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.94, null, a3Id, null);
+        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.42100, -99.18200, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.92, null, a1Id, null, null);
+        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42105, -99.18205, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.90, null, a2Id, null, null);
+        Analisis an3 = new Analisis(UUID.randomUUID(), "/img3.jpg", 19.42108, -99.18208, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.94, null, a3Id, null, null);
 
         List<Analisis> analisisList = List.of(an1, an2, an3);
 
@@ -100,8 +100,8 @@ class ConsultarEstadisticasUseCaseTest {
 
         List<Arbol> arboles = List.of(a1, a2);
 
-        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.42100, -99.18200, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.92, null, a1Id, null);
-        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42105, -99.18205, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.90, null, a2Id, null);
+        Analisis an1 = new Analisis(UUID.randomUUID(), "/img1.jpg", 19.42100, -99.18200, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.92, null, a1Id, null, null);
+        Analisis an2 = new Analisis(UUID.randomUUID(), "/img2.jpg", 19.42105, -99.18205, Instant.now(), Instant.now(), "sincronizado", "corteza", "infestado", 0.90, null, a2Id, null, null);
 
         ConsultarEstadisticasUseCase useCase = crearUseCase(arboles, List.of(an1, an2), List.of());
         List<FocoInfestacionDTO> focos = useCase.calcularFocosActivos();

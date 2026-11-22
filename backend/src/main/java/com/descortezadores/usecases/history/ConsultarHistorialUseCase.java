@@ -272,7 +272,8 @@ public class ConsultarHistorialUseCase {
             a.observaciones(),
             a.idArbol(),
             a.idZona(),
-            cromaticoDTO
+            cromaticoDTO,
+            a.idCuenta()
         );
     }
 }
