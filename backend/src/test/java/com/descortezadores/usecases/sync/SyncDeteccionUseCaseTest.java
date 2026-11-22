@@ -359,4 +359,48 @@ class SyncDeteccionUseCaseTest {
         assertEquals(1, resp.errores().size());
         assertTrue(resp.errores().get(0).contains(MensajesSistema.MSG05.getCodigo()));
     }
+
+    @Test
+    @DisplayName("Cada análisis sincronizado guarda la cuenta que lo subió, aunque el árbol sea de otra cuenta")
+    void testSyncGuardaCuentaAutorDelAnalisis() {
+        UUID idArbol = UUID.randomUUID();
+        UUID otraCuenta = UUID.randomUUID();
+
+        // Primera captura: la cuenta de prueba auto-registra el árbol
+        useCase.sincronizar(List.of(itemCorteza(idArbol)), idCuentaTest);
+        // Segunda captura del mismo árbol desde otra cuenta (otra persona le da seguimiento)
+        SyncBatchResponse resp = useCase.sincronizar(List.of(itemCorteza(idArbol)), otraCuenta);
+
+        assertEquals(1, resp.totalSincronizados());
+        assertEquals(1, arbolesGuardados.size(), "El árbol se registra una sola vez");
+        assertEquals(idCuentaTest, arbolesGuardados.get(0).idCuenta(), "El árbol conserva a quien lo registró");
+        assertEquals(2, analisisGuardados.size());
+        assertEquals(idCuentaTest, analisisGuardados.get(0).idCuenta());
+        assertEquals(otraCuenta, analisisGuardados.get(1).idCuenta(), "El análisis guarda a quien lo subió");
+    }
+
+    @Test
+    @DisplayName("El análisis de follaje también guarda la cuenta que lo subió")
+    void testSyncFollajeGuardaCuentaAutor() {
+        SyncItemDTO item = new SyncItemDTO(
+            UUID.randomUUID(), null, null, null, 19.425, -99.185, Instant.now(),
+            "follaje", "sano", 0.85, null,
+            null, null, null, null,
+            null, null, null, "Zona-Autor", 50.0
+        );
+
+        useCase.sincronizar(List.of(item), idCuentaTest);
+
+        assertEquals(1, analisisGuardados.size());
+        assertEquals(idCuentaTest, analisisGuardados.get(0).idCuenta());
+    }
+
+    private SyncItemDTO itemCorteza(UUID idArbol) {
+        return new SyncItemDTO(
+            UUID.randomUUID(), idArbol, null, null, 19.421, -99.182, Instant.now(),
+            "corteza", "sano", 0.92, "Seguimiento",
+            null, null, null, null,
+            null, null, null, null, null
+        );
+    }
 }

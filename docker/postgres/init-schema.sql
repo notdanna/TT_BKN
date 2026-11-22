@@ -77,6 +77,9 @@ CREATE TABLE IF NOT EXISTS analisis (
     -- CASCADE (no SET NULL): chk_arbol_o_zona no admite un análisis sin su árbol o zona.
     id_arbol UUID REFERENCES arbol(id_arbol) ON DELETE CASCADE,
     id_zona UUID REFERENCES zona_follaje(id_zona) ON DELETE CASCADE,
+    -- Cuenta que subió el análisis (autor). SET NULL: borrar la cuenta no borra sus análisis.
+    -- Nulo en registros anteriores a 2026-11-17_analisis_id_cuenta.sql (autor desconocido).
+    id_cuenta UUID REFERENCES cuenta(id_cuenta) ON DELETE SET NULL,
     CONSTRAINT chk_arbol_o_zona CHECK (
         (tipo_imagen = 'corteza' AND id_arbol IS NOT NULL AND id_zona IS NULL) OR
         (tipo_imagen = 'follaje' AND id_zona IS NOT NULL AND id_arbol IS NULL)
@@ -98,6 +101,7 @@ CREATE INDEX IF NOT EXISTS idx_arbol_coords ON arbol(latitud, longitud);
 CREATE INDEX IF NOT EXISTS idx_analisis_fecha ON analisis(fecha_captura DESC);
 CREATE INDEX IF NOT EXISTS idx_analisis_arbol ON analisis(id_arbol);
 CREATE INDEX IF NOT EXISTS idx_analisis_zona ON analisis(id_zona);
+CREATE INDEX IF NOT EXISTS idx_analisis_cuenta ON analisis(id_cuenta);
 
 -- Semilla de usuarios iniciales para desarrollo
 -- Contraseña temporal para ambos: Password123!

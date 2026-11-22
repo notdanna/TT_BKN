@@ -59,3 +59,20 @@ Servidor disponible en `http://localhost:8080`.
   para un experto el 403 no rompe esa limpieza local.
 - **Esquema:** `analisis.id_arbol`/`id_zona` pasan a `ON DELETE CASCADE`
   (`docker/postgres/migraciones/2026-11-09_analisis_on_delete_cascade.sql` para la BD existente).
+
+## Autor de cada análisis (noviembre 2026)
+
+- **Esquema:** `analisis.id_cuenta` (nullable, `ON DELETE SET NULL`) guarda la cuenta que subió cada
+  análisis; la sincronización la toma del token. Para la BD existente:
+  `docker/postgres/migraciones/2026-11-17_analisis_id_cuenta.sql`, **antes** de desplegar esta versión.
+  Sin la columna no solo falla la sincronización (`/sync` responde 200 con `totalSincronizados: 0` y
+  `column id_cuenta does not exist` en `errores`): **todas** las lecturas de análisis seleccionan
+  `id_cuenta` y responden 500 (`GET /api/v1/analisis`, `GET /api/v1/arboles/{id}/analisis`, historial,
+  estadísticas y reportes). Los análisis anteriores quedan con autor desconocido (`NULL`).
+- **Rollback**, en este orden: 1) volver TT_BKN a la versión anterior; 2) `DROP INDEX IF EXISTS
+  idx_analisis_cuenta; ALTER TABLE analisis DROP COLUMN IF EXISTS id_cuenta;`; 3) reiniciar o redesplegar
+  b-sheet, que detecta la columna una vez por arranque y, si la quitan después, responde 500 en los
+  análisis hasta su siguiente arranque en frío.
+- **b-sheet** funciona con o sin la columna (sin ella, `autor = null`); el autor aparece en la web a partir
+  del siguiente arranque en frío o redespliegue de su Lambda después de aplicar la migración.
+- **API:** `AnalisisDetalleDTO` añade `idCuenta` (nullable); los campos existentes no cambian.
