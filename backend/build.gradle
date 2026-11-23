@@ -13,13 +13,13 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor platform("io.micronaut.platform:micronaut-platform:4.7.4")
+    annotationProcessor platform("io.micronaut.platform:micronaut-platform:5.2.7")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
     annotationProcessor("io.micronaut:micronaut-http-validation")
     annotationProcessor("io.micronaut.security:micronaut-security-annotations")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     annotationProcessor("io.micronaut.validation:micronaut-validation-processor")
-    implementation platform("io.micronaut.platform:micronaut-platform:4.7.4")
+    implementation platform("io.micronaut.platform:micronaut-platform:5.2.7")
     implementation("io.micronaut.data:micronaut-data-jdbc")
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
