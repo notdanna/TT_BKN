@@ -1,6 +1,6 @@
 # EcoVerde Backend & IA — Sistema de Monitoreo Fitosanitario
 
-[![Backend & AI CI](https://github.com/notdanna/TT_BKN/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/notdanna/TT_BKN/actions/workflows/backend-ci.yml)
+[![Backend & AI CI](https://github.com/sheets-tt/bkn-sheet/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/sheets-tt/bkn-sheet/actions/workflows/backend-ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
 ![Micronaut](https://img.shields.io/badge/Micronaut-4.7.4-000000?logo=micronaut&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)

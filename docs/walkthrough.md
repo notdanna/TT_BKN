@@ -1,7 +1,7 @@
 # Guía Maestra y Walkthrough del Backend — Trabajo Terminal 2026-B161 (ESCOM - IPN)
 
 > **Proyecto:** *Prototipo de sistema móvil de detección de insectos descortezadores en árboles mediante visión por computadora. Caso de estudio: Bosque de Chapultepec.*  
-> **Repositorio GitHub:** [https://github.com/notdanna/TT_BKN.git](https://github.com/notdanna/TT_BKN.git)  
+> **Repositorio GitHub:** [https://github.com/sheets-tt/bkn-sheet.git](https://github.com/sheets-tt/bkn-sheet.git)  
 > **Ubicación local:** `/Users/dam/Documents/TTMobile`
 
 ---
